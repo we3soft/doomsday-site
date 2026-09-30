@@ -42,9 +42,18 @@ function pad(value: number) {
 }
 
 export default function Countdown() {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>(getTimeLeft);
+  const [mounted, setMounted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   useEffect(() => {
+    setMounted(true);
+    setTimeLeft(getTimeLeft());
+
     const timer = setInterval(() => {
       setTimeLeft(getTimeLeft());
     }, 1000);
@@ -52,12 +61,29 @@ export default function Countdown() {
     return () => clearInterval(timer);
   }, []);
 
+  if (!mounted) {
+    return (
+      <div
+        className="mt-8 flex items-center gap-2 font-mono drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] sm:mt-10 sm:gap-6"
+        aria-label="Countdown loading"
+      >
+        <span className="text-2xl font-medium text-foreground sm:text-4xl">00</span>
+        <span className="text-2xl text-white/50 sm:text-4xl">:</span>
+        <span className="text-2xl font-medium text-foreground sm:text-4xl">00</span>
+        <span className="text-2xl text-white/50 sm:text-4xl">:</span>
+        <span className="text-2xl font-medium text-foreground sm:text-4xl">00</span>
+        <span className="text-2xl text-white/50 sm:text-4xl">:</span>
+        <span className="text-2xl font-medium text-foreground sm:text-4xl">00</span>
+      </div>
+    );
+  }
+
   return (
     <div
       className="mt-8 flex items-center gap-2 font-mono drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] sm:mt-10 sm:gap-6"
       aria-label={`${timeLeft.days} days, ${timeLeft.hours} hours, ${timeLeft.minutes} minutes, and ${timeLeft.seconds} seconds remaining`}
     >
-      <span className="text-2xl  font-medium text-foreground sm:text-4xl">
+      <span className="text-2xl font-medium text-foreground sm:text-4xl">
         {timeLeft.days}
       </span>
 
