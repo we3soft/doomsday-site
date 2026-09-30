@@ -5,7 +5,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const navigation = [
-  { name: "Countdown", href: "/countdown" },
+  { name: "Countdown", href: "/" },
   { name: "Live", href: "/live" },
   { name: "Cast", href: "/cast" },
   { name: "Trailers", href: "/trailers" },

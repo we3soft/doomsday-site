@@ -7,7 +7,7 @@ export default function Home() {
       <section className="relative isolate min-h-[calc(100svh-4rem)] overflow-hidden lg:min-h-[calc(100svh-4.5rem)]">
         {/* Hero image */}
         <Image
-          src="/images/doomsday-hero.avif"
+          src="/doomsday-hero (1).avif"
           alt=""
           fill
           priority
