@@ -10,9 +10,9 @@ const navigation = [
 
 const legal = [
   { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
+  { name: "Contact", href: "/privacy" },
   { name: "Privacy", href: "/privacy" },
-  { name: "Terms", href: "/terms" },
+  { name: "Terms", href: "/privacy" },
 ];
 
 export default function Footer() {
