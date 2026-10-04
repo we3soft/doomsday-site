@@ -2,20 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-/* ------------------------------------------------------------------
-   PLAYER
-   - Autoplays muted (browsers only allow muted autoplay).
-   - A transparent layer sits on top of the iframe, so the cursor never
-     reaches YouTube: no hover title/info bar, no click-to-pause.
-   - "Turn sound on" is a real click, so the browser allows unmuted playback.
-------------------------------------------------------------------- */
 export function LivePlayer({ videoId }: { videoId: string }) {
   const [muted, setMuted] = useState(true);
 
   const params = new URLSearchParams({
     autoplay: "1",
     mute: muted ? "1" : "0",
-    controls: "0",
+    controls: "1",
     disablekb: "1",
     fs: "0",
     rel: "0",
@@ -34,29 +27,9 @@ export function LivePlayer({ videoId }: { videoId: string }) {
         allow="autoplay; encrypted-media; picture-in-picture"
         referrerPolicy="strict-origin-when-cross-origin"
       />
-
-      {/* Blocks hover and clicks on the video */}
-      <div className="absolute inset-0 z-10 cursor-default" aria-hidden="true" />
-
-      {muted && (
-        <button
-          type="button"
-          onClick={() => setMuted(false)}
-          className="absolute bottom-4 right-4 z-20 rounded-full border border-white/15 bg-black/70 px-4 py-2 text-xs font-medium text-white backdrop-blur transition hover:bg-black/90"
-        >
-          Turn sound on
-        </button>
-      )}
     </div>
   );
 }
-
-/* ------------------------------------------------------------------
-   CHAT
-   YouTube only renders the chat when embed_domain equals the domain the
-   page is served from. A hard-coded domain breaks on localhost and on
-   preview URLs, so it is read from the browser instead.
-------------------------------------------------------------------- */
 export function LiveChat({ videoId }: { videoId: string }) {
   const [domain, setDomain] = useState<string | null>(null);
 

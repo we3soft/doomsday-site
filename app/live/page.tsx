@@ -12,32 +12,31 @@ const VIDEO_ID = "f17J3AXVK5w";
 export default function LivePage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      {/* Page heading */}
-      <section className="border-b border-white/5 bg-[#050608]">
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
-              </span>
+      <section className="relative overflow-hidden border-b border-white/[0.06]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[-200px] h-[560px] w-[1000px] max-w-full -translate-x-1/2 rounded-full bg-emerald-500/[0.08] blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:28px_28px] [mask-image:linear-gradient(to_bottom,black,transparent)]"
+        />
 
-              <span className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
-                Live Now
-              </span>
-            </div>
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-14 lg:px-8 lg:pb-14 lg:pt-16">
+          <h1 className="text-4xl font-bold tracking-[-0.03em] text-white sm:text-6xl lg:text-7xl">
+            Doomsday{" "}
+            <span className="bg-gradient-to-r from-white to-white/50 bg-clip-text text-transparent">
+               Live
+            </span>
+          </h1>
 
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-              Avengers: Doomsday Live
-            </h1>
-
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/55 sm:text-base">
-              Watch the official live broadcast and follow the conversation
-              with viewers in real time.
-            </p>
-          </div>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-white/65 sm:text-lg sm:leading-8">
+            Watch the official live broadcast and follow the conversation
+            with viewers in real time.
+          </p>
         </div>
       </section>
+
 
       {/* Main live area */}
       <section className="relative overflow-hidden bg-background">
@@ -56,28 +55,6 @@ export default function LivePage() {
 
             {/* LIVE CHAT */}
             <div className="flex h-[560px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#090a0d] shadow-2xl shadow-black/30 lg:h-auto">
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-4">
-                <div>
-                  <h2 className="text-sm font-semibold text-white">
-                    Live Chat
-                  </h2>
-
-                  <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-white/35">
-                    Real-time conversation
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-                  </span>
-
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-accent">
-                    Live
-                  </span>
-                </div>
-              </div>
 
               <div className="min-h-0 flex-1 bg-[#090a0d]">
                 <LiveChat videoId={VIDEO_ID} />
