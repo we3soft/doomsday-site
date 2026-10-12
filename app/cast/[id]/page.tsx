@@ -183,18 +183,18 @@ export default async function CastMemberPage({ params }: Props) {
                 </div>
               )}
 
-              <h1 className="mt-3 text-4xl font-bold tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl">
+              <h1 className="mt-3 break-words text-4xl font-bold tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl">
                 {person.name}
               </h1>
 
               {facts.length > 0 && (
                 <dl className="mt-7 grid gap-x-8 gap-y-4 text-left sm:grid-cols-2">
                   {facts.map((f) => (
-                    <div key={f.label} className="border-l-2 border-accent/50 pl-4">
+                    <div key={f.label} className="min-w-0 border-l-2 border-accent/50 pl-4">
                       <dt className="text-xs uppercase tracking-wider text-white/50">
                         {f.label}
                       </dt>
-                      <dd className="mt-1 text-[15px] font-medium text-white">
+                      <dd className="mt-1 break-words text-[15px] font-medium text-white">
                         {f.value}
                       </dd>
                     </div>
@@ -224,26 +224,26 @@ export default async function CastMemberPage({ params }: Props) {
 
       {/* ───────── Content ───────── */}
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[1fr_320px] lg:gap-14">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-14">
           {/* Main column */}
           <div className="min-w-0 space-y-12">
             {/* Biography */}
-            <section>
+            <section className="min-w-0">
               <h2 className="text-2xl font-bold tracking-tight text-white">
                 Biography
               </h2>
 
               {firstPara ? (
-                <div className="mt-4 max-w-3xl space-y-4 text-[15px] leading-7 text-white/75 sm:text-base sm:leading-8">
+                <div className="mt-4 w-full min-w-0 max-w-3xl space-y-4 break-words text-[15px] leading-7 text-white/75 [overflow-wrap:anywhere] sm:text-base sm:leading-8">
                   <p>{firstPara}</p>
 
                   {restParas.length > 0 && (
-                    <details className="group">
-                      <summary className="inline-flex cursor-pointer list-none items-center gap-2 rounded-full border border-accent/40 px-4 py-1.5 text-sm font-medium text-accent transition hover:bg-accent/10">
+                    <details className="group min-w-0">
+                      <summary className="inline-flex cursor-pointer list-none items-center gap-2 rounded-full border border-accent/40 px-4 py-1.5 text-sm font-medium text-accent transition hover:bg-accent/10 [&::-webkit-details-marker]:hidden">
                         <span className="group-open:hidden">Read full biography</span>
                         <span className="hidden group-open:inline">Show less</span>
                       </summary>
-                      <div className="mt-4 space-y-4">
+                      <div className="mt-4 min-w-0 space-y-4">
                         {restParas.map((p, i) => (
                           <p key={i}>{p}</p>
                         ))}
@@ -265,7 +265,7 @@ export default async function CastMemberPage({ params }: Props) {
                   {person.also_known_as.slice(0, 5).map((n) => (
                     <span
                       key={n}
-                      className="rounded-full bg-white/[0.06] px-3 py-1 text-xs text-white/75"
+                      className="max-w-full break-words rounded-full bg-white/[0.06] px-3 py-1 text-xs text-white/75"
                     >
                       {n}
                     </span>
@@ -276,7 +276,7 @@ export default async function CastMemberPage({ params }: Props) {
 
             {/* Known for */}
             {knownFor.length > 0 && (
-              <section>
+              <section className="min-w-0">
                 <h2 className="text-2xl font-bold tracking-tight text-white">
                   Known for
                 </h2>
@@ -320,7 +320,7 @@ export default async function CastMemberPage({ params }: Props) {
 
           {/* Sidebar: latest films */}
           {filmography.length > 0 && (
-            <aside className="lg:sticky lg:top-8 lg:self-start">
+            <aside className="min-w-0 lg:sticky lg:top-8 lg:self-start">
               <h2 className="text-2xl font-bold tracking-tight text-white">
                 Latest films
               </h2>
