@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -13,6 +14,7 @@ const navigation = [
 ];
 
 export default function Header() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -65,20 +67,32 @@ export default function Header() {
           className="hidden items-center gap-1 md:flex"
           aria-label="Main navigation"
         >
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="group relative px-3.5 py-2 text-sm font-medium text-white"
-            >
-              {item.name}
+          {navigation.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
 
-              <span
-                aria-hidden="true"
-                className="absolute bottom-1 left-3.5 right-3.5 hidden border-b-2 border-white/80 group-hover:block"
-              />
-            </Link>
-          ))}
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                className={`group relative px-3.5 py-2 text-sm font-medium transition-colors ${
+                  isActive ? "text-white font-semibold" : "text-white/70 hover:text-white"
+                }`}
+              >
+                {item.name}
+
+                <span
+                  aria-hidden="true"
+                  className={`absolute bottom-1 left-3.5 right-3.5 border-b-2 border-[#EF4444] transition-all ${
+                    isActive ? "block" : "hidden group-hover:block group-hover:border-white/50"
+                  }`}
+                />
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Mobile menu button */}
@@ -110,16 +124,25 @@ export default function Header() {
             className="mx-auto max-w-7xl px-4 py-2 sm:px-6"
             aria-label="Mobile navigation"
           >
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="block border-b border-white/5 py-4 text-sm font-medium text-white/90 last:border-b-0"
-                onClick={() => setMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`block border-b border-white/5 py-4 text-sm font-medium transition-colors last:border-b-0 ${
+                    isActive ? "text-[#EF4444] font-semibold" : "text-white/90 hover:text-white"
+                  }`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       )}

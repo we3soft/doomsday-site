@@ -11,6 +11,8 @@
 
   --font-sans: var(--font-inter);
   --font-mono: var(--font-dm-mono);
+
+  --color-accent-yellow: #f5c518;
 }
 
 * {
