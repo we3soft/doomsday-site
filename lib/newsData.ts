@@ -27,7 +27,40 @@ export interface NewsArticle {
 
 export const sampleArticles: NewsArticle[] = [
   {
-    id: "emergency-scenarios-and-abort-options",
+    id: "thor-odinfore",
+    title: "With the multiverse collapsing in Avengers: Doomsday, the Odinforce might be the only thing keeping Thor in the heavyweight bracket.",
+    description:
+      "Between the new promo art and that intense prayer, the fan theories are locked in, Thor is inheriting the Odinforce in Doomsday, and the MCU is not ready for his final form.",
+    category: "THEORY",
+    date: "October 2026",
+    author: "S Min",
+    readingTime: "2–3 Minutes Read",
+    image: "/Thor-Gold-Armor-1.avif",
+    heroImage: "/Thor-Gold-Armor-1.avif",
+    content: {
+      intro:
+        "Everyone is rewinding this specific scene in the Doomsday teaser. Thor is completely broken.  Kneeling in a forest with Stormbreaker, praying to Odin for the strength to fight one last time. But look closely at the official promo art the lightning around his axe isn’t blue anymore. It’s yellow. And this one detail just proved the wildest Thor theory in MCU history.",
+      sections: [
+        {
+          paragraphs: [
+            "Marvel hasn't explicitly confirmed the Odinforce, but they know exactly what they’re doing by pairing a prayer to the All-Fathers with a deliberate swap from Thor's classic blue lightning to orange in the official Doomsday concept art. Because the MCU doesn't do random redesigns, fans and media outlets have taken these two tiny details and theorise them into a viral theory predicting a massive power upgrade. The whole hype is literally built on just a color change and a prayer but honestly it's pretty damn convincing isnt it."
+          ],
+          image: {
+            url: "/Thor-2.avif",
+            
+          },
+        },
+        {
+          paragraphs: [
+            "The Odinforce isn’t just lightning it’s godhood. In Marvel comics, this near-limitless energy is what allowed Odin to bend reality in ways normal asgardians couldn't comprehend. When Thor finally ascends to the throne as the rightful ruler of Asgard, he claims that power for himself, Thorforce King Thor isn't just an Avenger anymore. He is widely considered the absolute peak of the Odinson's power. And believe it or not, the power scaling goes even higher.",
+            "To reach his absolute peak in the comics, Thor had to sacrifice both of his eyes at the Well of Mimir. Gaining omniscience and becoming Rune King Thor who finally broke the cycle of Ragnarok and surpassed Odin precisely because of the years he spent living as a mortal man. However, wielding the limitless energy of the All-Power comes with a massive vulnerability. The Odinsleep, a deep, defenseless slumber required to recharge the user's magic. Dropping that specific lore into Avengers: Doomsday introduces a massive tactical dilemma, positioning the Thorforce as a desperate, all-or-nothing nuclear option that could give Thor the raw power to defeat Doctor Doom but force him into a vulnerable coma at the worst possible time."
+          ],
+        }
+      ],
+    },
+  },
+  {
+    id: "encore-anthony-doomsday",
     title: "Anthony Russo Teases How Avengers Endgame: Encore Leads Into Avengers: Doomsday",
     description:
       "The Russo brothers’ latest Marvel project gets a behind-the-scenes look from director Anthony Russo.",
