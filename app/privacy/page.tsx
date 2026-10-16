@@ -1,10 +1,53 @@
 import type { Metadata } from "next";
 
+const SITE_URL = "https://avengersdoomsday.live";
+const PAGE_URL = `${SITE_URL}/privacy`;
+const TITLE = "Privacy Policy – Avengers: Doomsday Fan Hub";
+const DESCRIPTION =
+  "Read how the Avengers: Doomsday fan site handles visitor information, cookies, embedded content and third-party links.";
+const OG_IMAGE = `${SITE_URL}/og-image.jpg`; // 1200x630
+
 export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description:
-    "Privacy Policy for Doomsday - Learn how we handle information and protect visitor privacy.",
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    type: "website",
+    url: PAGE_URL,
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: "Avengers: Doomsday",
+    locale: "en_US",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: TITLE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${PAGE_URL}#webpage`,
+    url: PAGE_URL,
+    name: "Privacy Policy",
+    description: DESCRIPTION,
+    inLanguage: "en-US",
+    isPartOf: { "@type": "WebSite", name: "Avengers: Doomsday", url: SITE_URL },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Privacy Policy", item: PAGE_URL },
+    ],
+  },
+];
 
 const sections = [
   {
@@ -45,6 +88,12 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-black text-white px-6 py-16 sm:py-24 lg:py-28">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <article className="mx-auto max-w-[900px] text-left">
         {/* Header Section */}
         <header className="mb-14 sm:mb-16">

@@ -11,6 +11,50 @@ interface ArticlePageProps {
   }>;
 }
 
+/* ───────────── SEO helpers (everything is derived from lib/newsData.ts) ───────────── */
+
+const SITE_URL = "https://avengersdoomsday.live";
+const SITE_NAME = "Avengers: Doomsday";
+const DEFAULT_OG_IMAGE = "/og-image.jpg"; // public/og-image.jpg, 1200x630
+
+const absoluteUrl = (path: string) => new URL(path, SITE_URL).toString();
+
+const truncate = (text: string, max: number) => {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[.,;:]$/, "")}…`;
+};
+
+const MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+// Turns "October 2026" or "October 16, 2026" into "2026-10-01" / "2026-10-16".
+function toIsoDate(label: string): string | undefined {
+  const m = label.match(/([A-Za-z]+)\.?\s+(?:(\d{1,2})(?:st|nd|rd|th)?,?\s+)?(\d{4})/);
+  if (!m) return undefined;
+  const month = MONTHS.indexOf(m[1].toLowerCase());
+  if (month === -1) return undefined;
+  const day = m[2] ? Number(m[2]) : 1;
+  return new Date(Date.UTC(Number(m[3]), month, day)).toISOString().slice(0, 10);
+}
+
+const CATEGORY_LABEL: Record<string, string> = {
+  NEWS: "News",
+  LEAK: "Leak",
+  THEORY: "Theory",
+};
+
+// Social networks do not reliably render .avif previews, so those articles fall
+// back to the site-wide JPG. Use a .jpg/.png article image and it is used instead.
+function socialImage(image: string) {
+  return /\.(avif|svg)$/i.test(image) ? DEFAULT_OG_IMAGE : image;
+}
+
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   const articles = getAllArticles();
   return articles.map((article) => ({
@@ -27,16 +71,44 @@ export async function generateMetadata({
   if (!article) {
     return {
       title: "Article Not Found",
+      robots: { index: false, follow: false },
     };
   }
 
+  const url = absoluteUrl(`/news/${article.id}`);
+  const title = truncate(article.title, 70);
+  const description = truncate(article.description, 158);
+  const image = absoluteUrl(socialImage(article.image));
+  const published = toIsoDate(article.date);
+
   return {
-    title: article.title,
-    description: article.description,
+    title: { absolute: `${title} | ${SITE_NAME}` },
+    description,
+    keywords: [
+      "Avengers Doomsday",
+      `Avengers Doomsday ${CATEGORY_LABEL[article.category]?.toLowerCase() ?? "news"}`,
+      "Marvel Studios",
+      "MCU",
+    ],
+    authors: [{ name: article.author }],
+    alternates: { canonical: url },
     openGraph: {
-      title: article.title,
-      description: article.description,
-      images: [article.image],
+      type: "article",
+      url,
+      siteName: SITE_NAME,
+      locale: "en_US",
+      title: truncate(article.title, 95),
+      description,
+      ...(published && { publishedTime: published, modifiedTime: published }),
+      authors: [article.author],
+      section: CATEGORY_LABEL[article.category] ?? article.category,
+      images: [{ url: image, alt: article.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: truncate(article.title, 70),
+      description,
+      images: [image],
     },
   };
 }
@@ -75,8 +147,57 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     }
   };
 
+  /* Structured data: NewsArticle / Article + breadcrumb */
+  const articleUrl = absoluteUrl(`/news/${article.id}`);
+  const published = toIsoDate(article.date);
+  const wordCount = [
+    article.content.intro,
+    ...article.content.sections.flatMap((s) => s.paragraphs),
+  ]
+    .join(" ")
+    .split(/\s+/).length;
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": article.category === "NEWS" ? "NewsArticle" : "Article",
+      "@id": `${articleUrl}#article`,
+      mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
+      url: articleUrl,
+      headline: truncate(article.title, 110),
+      description: article.description,
+      image: [absoluteUrl(article.heroImage || article.image)],
+      ...(published && { datePublished: published, dateModified: published }),
+      author: { "@type": "Person", name: article.author },
+      publisher: {
+        "@type": "Organization",
+        name: "Avengers: Doomsday Fan Hub",
+        url: SITE_URL,
+      },
+      articleSection: CATEGORY_LABEL[article.category] ?? article.category,
+      wordCount,
+      inLanguage: "en-US",
+      isAccessibleForFree: true,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "News", item: `${SITE_URL}/news` },
+        { "@type": "ListItem", position: 3, name: article.title, item: articleUrl },
+      ],
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-black text-white pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* Top Back Navigation Bar */}
       <div className="border-b border-white/10 bg-[#050608]/80 backdrop-blur-md sticky top-16 z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
@@ -150,7 +271,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
             <div className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-neutral-500" />
-              <span>{article.date}</span>
+              <time dateTime={published}>{article.date}</time>
             </div>
           </div>
         </div>

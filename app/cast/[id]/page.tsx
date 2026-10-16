@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -37,16 +38,101 @@ type Credits = {
 
 type Props = { params: Promise<{ id: string }> };
 
+const SITE_URL = "https://avengersdoomsday.live";
+const FALLBACK_OG = `${SITE_URL}/og-image.jpg`;
+
 function getPerson(id: string) {
   return tmdb<Person>(
     `/person/${id}?append_to_response=movie_credits,external_ids`
   );
 }
 
-export async function generateMetadata({ params }: Props) {
+const truncate = (text: string, max: number) => {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[.,;:]$/, "")}…`;
+};
+
+// Pre-render the main cast at build time; any other TMDB id still renders on demand.
+export async function generateStaticParams() {
+  try {
+    const credits = await tmdb<{ cast: { id: number; order: number }[] }>(
+      `/movie/${MOVIE_ID}/credits`
+    );
+    return (credits?.cast ?? [])
+      .sort((a, b) => a.order - b.order)
+      .slice(0, 30)
+      .map((p) => ({ id: String(p.id) }));
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const person = await getPerson(id);
-  return { title: person ? `${person.name} | Cast` : "Cast" };
+
+  if (!/^\d+$/.test(id)) {
+    return { title: "Cast member not found", robots: { index: false } };
+  }
+
+  try {
+    const [person, credits] = await Promise.all([
+      getPerson(id),
+      tmdb<Credits>(`/movie/${MOVIE_ID}/credits`),
+    ]);
+
+    if (!person) {
+      return { title: "Cast member not found", robots: { index: false } };
+    }
+
+    const role = credits?.cast.find((c) => c.id === person.id)?.character;
+    const url = `${SITE_URL}/cast/${person.id}`;
+
+    const title = role
+      ? `${person.name} as ${role} – Avengers: Doomsday Cast`
+      : `${person.name} – Avengers: Doomsday Cast`;
+
+    const intro = role
+      ? `${person.name} plays ${role} in Avengers: Doomsday (2026). `
+      : `${person.name} is part of the Avengers: Doomsday (2026) cast. `;
+    const description = truncate(
+      person.biography
+        ? `${intro}${person.biography}`
+        : `${intro}See biography, birthday and latest films.`,
+      158
+    );
+
+    const image = person.profile_path
+      ? `${IMG}/h632${person.profile_path}`
+      : FALLBACK_OG;
+
+    return {
+      title: { absolute: title },
+      description,
+      alternates: { canonical: url },
+      openGraph: {
+        type: "profile",
+        url,
+        title,
+        description,
+        siteName: "Avengers: Doomsday",
+        locale: "en_US",
+        images: [{ url: image, alt: person.name }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [image],
+      },
+    };
+  } catch {
+    return {
+      title: "Cast",
+      alternates: { canonical: `${SITE_URL}/cast/${id}` },
+    };
+  }
 }
 
 const formatDate = (d: string) =>
@@ -129,8 +215,59 @@ export default async function CastMemberPage({ params }: Props) {
     .filter(Boolean);
   const [firstPara, ...restParas] = paragraphs;
 
+  const pageUrl = `${SITE_URL}/cast/${person.id}`;
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "@id": `${pageUrl}#person`,
+      name: person.name,
+      url: pageUrl,
+      jobTitle: person.known_for_department,
+      ...(person.profile_path && { image: `${IMG}/h632${person.profile_path}` }),
+      ...(firstPara && { description: truncate(firstPara, 300) }),
+      ...(person.birthday && { birthDate: person.birthday }),
+      ...(person.deathday && { deathDate: person.deathday }),
+      ...(person.place_of_birth && {
+        birthPlace: { "@type": "Place", name: person.place_of_birth },
+      }),
+      ...(person.also_known_as?.length > 0 && {
+        alternateName: person.also_known_as.slice(0, 5),
+      }),
+      ...(links.length > 0 && { sameAs: links.map((l) => l.href) }),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: `${person.name} – Avengers: Doomsday cast`,
+      description: role
+        ? `${person.name} as ${role} in Avengers: Doomsday.`
+        : `${person.name} in the Avengers: Doomsday cast.`,
+      inLanguage: "en-US",
+      mainEntity: { "@id": `${pageUrl}#person` },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "Cast", item: `${SITE_URL}/cast` },
+        { "@type": "ListItem", position: 3, name: person.name, item: pageUrl },
+      ],
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* ───────── Hero ───────── */}
       <section className="relative overflow-hidden">
         <div

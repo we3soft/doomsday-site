@@ -45,6 +45,7 @@ export function LiveChat({ videoId }: { videoId: string }) {
         {domain ? (
           <iframe
             className="h-full w-full"
+            loading="lazy"
             src={`https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${domain}&dark_theme=1`}
             title="YouTube Live Chat"
           />

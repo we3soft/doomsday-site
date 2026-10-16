@@ -5,12 +5,14 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+// `title` gives each link a descriptive hover/accessibility hint, and gives
+// search engines extra context about where the link goes.
 const navigation = [
-  { name: "Countdown", href: "/" },
-  { name: "Live", href: "/live" },
-  { name: "Cast", href: "/cast" },
-  { name: "Trailers", href: "/trailers" },
-  { name: "News", href: "/news" },
+  { name: "Countdown", href: "/", title: "Avengers: Doomsday countdown" },
+  { name: "Live", href: "/live", title: "Avengers: Doomsday live broadcast and chat" },
+  { name: "Cast", href: "/cast", title: "Avengers: Doomsday cast and characters" },
+  { name: "Trailers", href: "/trailers", title: "Avengers: Doomsday trailers and videos" },
+  { name: "News", href: "/news", title: "Avengers: Doomsday news, analysis and theories" },
 ];
 
 export default function Header() {
@@ -56,6 +58,8 @@ export default function Header() {
         {/* Logo */}
         <Link
           href="/"
+          title="Avengers: Doomsday countdown, home"
+          aria-current={pathname === "/" ? "page" : undefined}
           className="shrink-0 text-lg font-bold tracking-[0.08em] text-white"
           onClick={() => setMenuOpen(false)}
         >
@@ -66,6 +70,8 @@ export default function Header() {
         <nav
           className="hidden items-center gap-1 md:flex"
           aria-label="Main navigation"
+          itemScope
+          itemType="https://schema.org/SiteNavigationElement"
         >
           {navigation.map((item) => {
             const isActive =
@@ -77,12 +83,14 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
+                title={item.title}
+                itemProp="url"
                 aria-current={isActive ? "page" : undefined}
                 className={`group relative px-3.5 py-2 text-sm font-medium transition-colors ${
                   isActive ? "text-white font-semibold" : "text-white/70 hover:text-white"
                 }`}
               >
-                {item.name}
+                <span itemProp="name">{item.name}</span>
 
                 <span
                   aria-hidden="true"
@@ -134,6 +142,8 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
+                  title={item.title}
+                  aria-current={isActive ? "page" : undefined}
                   className={`block border-b border-white/5 py-4 text-sm font-medium transition-colors last:border-b-0 ${
                     isActive ? "text-[#EF4444] font-semibold" : "text-white/90 hover:text-white"
                   }`}

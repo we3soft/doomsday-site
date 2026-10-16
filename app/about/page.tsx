@@ -1,10 +1,65 @@
 import type { Metadata } from "next";
 
+const SITE_URL = "https://avengersdoomsday.live";
+const PAGE_URL = `${SITE_URL}/about`;
+const TITLE = "About Doomsday – An Independent Avengers: Doomsday Fan Hub";
+const DESCRIPTION =
+  "Doomsday is a fan-built road to Avengers: Doomsday: live countdown, news, theories and trailers. Learn our mission and how we separate fact from rumor.";
+const OG_IMAGE = `${SITE_URL}/og-image.jpg`; // add public/og-image.jpg (1200x630)
+
 export const metadata: Metadata = {
-  title: "About",
-  description:
-    "Doomsday is a fan-built road to Avengers: Doomsday - live countdown, updates, rumors, theories, and cinematic experience.",
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  keywords: [
+    "about Avengers Doomsday fan site",
+    "Avengers Doomsday fan hub",
+    "Marvel fan website",
+    "Avengers Doomsday countdown",
+  ],
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    type: "website",
+    url: PAGE_URL,
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: "Avengers: Doomsday",
+    locale: "en_US",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: TITLE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "@id": `${PAGE_URL}#webpage`,
+    url: PAGE_URL,
+    name: "About Doomsday",
+    description: DESCRIPTION,
+    inLanguage: "en-US",
+    about: {
+      "@type": "Organization",
+      name: "Avengers: Doomsday Fan Hub",
+      url: SITE_URL,
+      description:
+        "An independent, unofficial fan site tracking Avengers: Doomsday. Not affiliated with Marvel Studios or Disney.",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "About", item: PAGE_URL },
+    ],
+  },
+];
 
 type Section = {
   heading: string;
@@ -66,6 +121,12 @@ const sections: Section[] = [
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-black text-white px-6 py-16 sm:py-24 lg:py-28">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <article className="mx-auto max-w-[900px] text-left">
         {/* Header Section */}
         <header className="mb-14 sm:mb-16">

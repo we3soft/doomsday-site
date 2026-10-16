@@ -41,6 +41,17 @@ function pad(value: number) {
   return value.toString().padStart(2, "0");
 }
 
+// Static, crawlable text. Search engines see this even though the live numbers
+// only run in the browser. Visually hidden, so the design is unchanged.
+function ReleaseText() {
+  return (
+    <span className="sr-only">
+      Avengers: Doomsday releases in theaters on{" "}
+      <time dateTime="2026-12-18">December 18, 2026</time>.
+    </span>
+  );
+}
+
 export default function Countdown() {
   const [mounted, setMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
@@ -65,8 +76,10 @@ export default function Countdown() {
     return (
       <div
         className="mt-8 flex items-center gap-2 font-mono drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] sm:mt-10 sm:gap-6"
-        aria-label="Countdown loading"
+        role="timer"
+        aria-label="Countdown to Avengers: Doomsday, loading"
       >
+        <ReleaseText />
         <span className="text-2xl font-medium text-foreground sm:text-4xl">00</span>
         <span className="text-2xl text-white/50 sm:text-4xl">:</span>
         <span className="text-2xl font-medium text-foreground sm:text-4xl">00</span>
@@ -81,8 +94,10 @@ export default function Countdown() {
   return (
     <div
       className="mt-8 flex items-center gap-2 font-mono drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] sm:mt-10 sm:gap-6"
-      aria-label={`${timeLeft.days} days, ${timeLeft.hours} hours, ${timeLeft.minutes} minutes, and ${timeLeft.seconds} seconds remaining`}
+      role="timer"
+      aria-label={`${timeLeft.days} days, ${timeLeft.hours} hours, ${timeLeft.minutes} minutes, and ${timeLeft.seconds} seconds until Avengers: Doomsday`}
     >
+      <ReleaseText />
       <span className="text-2xl font-medium text-foreground sm:text-4xl">
         {timeLeft.days}
       </span>

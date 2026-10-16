@@ -14,6 +14,21 @@ const CATEGORIES: { id: CategoryFilter; label: string }[] = [
   { id: "Theories", label: "Theories" },
 ];
 
+const MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+// "October 2026" -> "2026-10-01" so the visible date can also be machine-readable.
+function toIsoDate(label: string): string | undefined {
+  const m = label.match(/([A-Za-z]+)\.?\s+(?:(\d{1,2})(?:st|nd|rd|th)?,?\s+)?(\d{4})/);
+  if (!m) return undefined;
+  const month = MONTHS.indexOf(m[1].toLowerCase());
+  if (month === -1) return undefined;
+  const day = m[2] ? Number(m[2]) : 1;
+  return new Date(Date.UTC(Number(m[3]), month, day)).toISOString().slice(0, 10);
+}
+
 export default function NewsListing() {
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryFilter>("Latest");
@@ -44,6 +59,7 @@ export default function NewsListing() {
         />
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
           Top news
+          <span className="sr-only"> about Avengers: Doomsday</span>
           <ChevronRight
             className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.5]"
             aria-hidden="true"
@@ -134,7 +150,9 @@ export default function NewsListing() {
 
                       {/* Date/Source Metadata */}
                       <div className="mt-2.5 flex items-center gap-1.5 text-xs text-neutral-400 font-sans">
-                        <span>{leadArticle.date}</span>
+                        <time dateTime={toIsoDate(leadArticle.date)}>
+                          {leadArticle.date}
+                        </time>
                         {leadArticle.author && (
                           <>
                             <span aria-hidden="true">•</span>
@@ -177,7 +195,9 @@ export default function NewsListing() {
 
                           {/* Date/Source Metadata */}
                           <div className="mt-2 flex items-center gap-1.5 text-[11px] sm:text-xs text-neutral-400 font-sans">
-                            <span>{article.date}</span>
+                            <time dateTime={toIsoDate(article.date)}>
+                              {article.date}
+                            </time>
                             {article.author && (
                               <>
                                 <span aria-hidden="true">•</span>
