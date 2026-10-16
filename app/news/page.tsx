@@ -4,10 +4,10 @@ import { getAllArticles } from "@/lib/newsData";
 
 const SITE_URL = "https://avengersdoomsday.live";
 const PAGE_URL = `${SITE_URL}/news`;
-const TITLE = "Avengers: Doomsday News, Analysis & Theories (2026)";
+const TITLE = "Avengers: Doomsday News, Theories & Updates (2026)";
 const DESCRIPTION =
-  "The latest Avengers: Doomsday news, cast and casting analysis, Doctor Doom explainers and clearly labeled fan theories, updated as Marvel Studios announces more.";
-const OG_IMAGE = `${SITE_URL}/og-image.jpg`; // add public/og-image.jpg (1200x630)
+  "The latest Avengers: Doomsday news, cast and director updates, plus clearly labeled fan theories about Doctor Doom, Thor and the MCU multiverse.";
+const OG_IMAGE = `${SITE_URL}/og-image.jpg`; // 1200x630
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   keywords: [
     "Avengers Doomsday news",
     "Avengers Doomsday theories",
-    "Avengers Doomsday analysis",
+    "Avengers Doomsday updates",
     "Doctor Doom MCU news",
     "Marvel news 2026",
   ],
@@ -38,6 +38,7 @@ export const metadata: Metadata = {
 };
 
 export default function NewsPage() {
+  // Built from lib/newsData.ts, so every new article is added automatically.
   const articles = getAllArticles();
 
   const jsonLd = [
@@ -46,7 +47,7 @@ export default function NewsPage() {
       "@type": "CollectionPage",
       "@id": `${PAGE_URL}#webpage`,
       url: PAGE_URL,
-      name: "Avengers: Doomsday News and Analysis",
+      name: "Avengers: Doomsday News and Theories",
       description: DESCRIPTION,
       inLanguage: "en-US",
     },
@@ -61,7 +62,7 @@ export default function NewsPage() {
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: "Avengers: Doomsday news and analysis",
+      name: "Avengers: Doomsday news and theories",
       itemListElement: articles.map((article, i) => ({
         "@type": "ListItem",
         position: i + 1,

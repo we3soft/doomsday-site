@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { MOVIE_ID, tmdb } from "@/lib/tmdb";
 
@@ -21,10 +22,41 @@ type Props = {
   searchParams: Promise<{ v?: string; all?: string; play?: string }>;
 };
 
-export const metadata = {
-  title: "Trailers | Avengers: Doomsday",
-  description:
-    "Watch every official trailer, teaser and clip from Avengers: Doomsday.",
+const SITE_URL = "https://avengersdoomsday.live";
+const PAGE_URL = `${SITE_URL}/trailers`;
+const TITLE = "Avengers: Doomsday Trailers – Official Teasers, Clips & Videos (2026)";
+const DESCRIPTION =
+  "Watch every official Avengers: Doomsday trailer, teaser and clip in one place. Updated as new Marvel Studios footage is released.";
+const OG_IMAGE = `${SITE_URL}/og-image.jpg`; // 1200x630
+
+// The canonical always points at /trailers, so ?v=, ?all= and ?play= variants
+// all consolidate into one indexable URL.
+export const metadata: Metadata = {
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  keywords: [
+    "Avengers Doomsday trailer",
+    "Avengers Doomsday teaser",
+    "Avengers Doomsday official trailer",
+    "Avengers Doomsday clips",
+    "Avengers Doomsday videos",
+  ],
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    type: "website",
+    url: PAGE_URL,
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: "Avengers: Doomsday",
+    locale: "en_US",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: TITLE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
 const TYPE_ORDER: Record<string, number> = { Trailer: 0, Teaser: 1, Clip: 2 };
@@ -89,8 +121,49 @@ export default async function TrailersPage({ searchParams }: Props) {
         .join("  ·  ")
     : "";
 
+  const videoJsonLd = featured
+    ? {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        name: featured.name,
+        description: `${featured.name} – ${featured.type.toLowerCase()} for ${movieTitle}.`,
+        thumbnailUrl: [
+          `https://i.ytimg.com/vi/${featured.key}/maxresdefault.jpg`,
+          `https://i.ytimg.com/vi/${featured.key}/hqdefault.jpg`,
+        ],
+        uploadDate: featured.published_at || undefined,
+        embedUrl: `https://www.youtube.com/embed/${featured.key}`,
+        contentUrl: `https://www.youtube.com/watch?v=${featured.key}`,
+      }
+    : null;
+
   return (
     <main className="min-h-screen bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "CollectionPage",
+              "@id": `${PAGE_URL}#webpage`,
+              url: PAGE_URL,
+              name: "Avengers: Doomsday Trailers & Videos",
+              description: DESCRIPTION,
+              inLanguage: "en-US",
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+                { "@type": "ListItem", position: 2, name: "Trailers", item: PAGE_URL },
+              ],
+            },
+            ...(videoJsonLd ? [videoJsonLd] : []),
+          ]).replace(/</g, "\\u003c"),
+        }}
+      />
       <div className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12 lg:px-8 lg:pb-28">
         {/* ───────── Topic ───────── */}
         <header className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">

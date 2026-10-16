@@ -2,31 +2,55 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  AlertTriangle,
-  BookOpen,
-  HelpCircle,
-  Sparkles,
-  Clock,
-  Calendar,
-  User,
-  Search,
-} from "lucide-react";
-import {
-  getArticleById,
-  getAllArticles,
-  getRelatedArticles,
-} from "@/lib/newsData";
-
-const SITE_URL = "https://avengersdoomsday.live";
-const SITE_NAME = "Avengers: Doomsday";
-const absoluteUrl = (path: string) => new URL(path, SITE_URL).toString();
+import { ArrowLeft, AlertTriangle, HelpCircle, Sparkles, Clock, Calendar, User } from "lucide-react";
+import { getArticleById, getAllArticles } from "@/lib/newsData";
 
 interface ArticlePageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+/* ───────────── SEO helpers (everything is derived from lib/newsData.ts) ───────────── */
+
+const SITE_URL = "https://avengersdoomsday.live";
+const SITE_NAME = "Avengers: Doomsday";
+const DEFAULT_OG_IMAGE = "/og-image.jpg"; // public/og-image.jpg, 1200x630
+
+const absoluteUrl = (path: string) => new URL(path, SITE_URL).toString();
+
+const truncate = (text: string, max: number) => {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[.,;:]$/, "")}…`;
+};
+
+const MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+// Turns "October 2026" or "October 16, 2026" into "2026-10-01" / "2026-10-16".
+function toIsoDate(label: string): string | undefined {
+  const m = label.match(/([A-Za-z]+)\.?\s+(?:(\d{1,2})(?:st|nd|rd|th)?,?\s+)?(\d{4})/);
+  if (!m) return undefined;
+  const month = MONTHS.indexOf(m[1].toLowerCase());
+  if (month === -1) return undefined;
+  const day = m[2] ? Number(m[2]) : 1;
+  return new Date(Date.UTC(Number(m[3]), month, day)).toISOString().slice(0, 10);
+}
+
+const CATEGORY_LABEL: Record<string, string> = {
+  NEWS: "News",
+  LEAK: "Leak",
+  THEORY: "Theory",
+};
+
+// Social networks do not reliably render .avif previews, so those articles fall
+// back to the site-wide JPG. Use a .jpg/.png article image and it is used instead.
+function socialImage(image: string) {
+  return /\.(avif|svg)$/i.test(image) ? DEFAULT_OG_IMAGE : image;
 }
 
 export const dynamicParams = false;
@@ -52,12 +76,20 @@ export async function generateMetadata({
   }
 
   const url = absoluteUrl(`/news/${article.id}`);
-  const image = absoluteUrl(article.heroImage || article.image);
+  const title = truncate(article.title, 70);
+  const description = truncate(article.description, 158);
+  const image = absoluteUrl(socialImage(article.image));
+  const published = toIsoDate(article.date);
 
   return {
-    title: article.title,
-    description: article.description,
-    keywords: article.tags,
+    title: { absolute: `${title} | ${SITE_NAME}` },
+    description,
+    keywords: [
+      "Avengers Doomsday",
+      `Avengers Doomsday ${CATEGORY_LABEL[article.category]?.toLowerCase() ?? "news"}`,
+      "Marvel Studios",
+      "MCU",
+    ],
     authors: [{ name: article.author }],
     alternates: { canonical: url },
     openGraph: {
@@ -65,31 +97,21 @@ export async function generateMetadata({
       url,
       siteName: SITE_NAME,
       locale: "en_US",
-      title: article.title,
-      description: article.description,
-      publishedTime: article.publishedAt,
-      modifiedTime: article.updatedAt,
+      title: truncate(article.title, 95),
+      description,
+      ...(published && { publishedTime: published, modifiedTime: published }),
       authors: [article.author],
-      section: article.category,
-      tags: article.tags,
+      section: CATEGORY_LABEL[article.category] ?? article.category,
       images: [{ url: image, alt: article.title }],
     },
     twitter: {
       card: "summary_large_image",
-      title: article.title,
-      description: article.description,
+      title: truncate(article.title, 70),
+      description,
       images: [image],
     },
   };
 }
-
-const CATEGORY_LABEL: Record<string, string> = {
-  NEWS: "News",
-  ANALYSIS: "Analysis",
-  GUIDE: "Guide",
-  THEORY: "Theory",
-  LEAK: "Leak",
-};
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const resolvedParams = await params;
@@ -99,16 +121,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  const related = getRelatedArticles(article.id, 3);
-
   const getBadgeStyle = (category: string) => {
     switch (category) {
       case "NEWS":
         return "bg-[#EF4444] text-white";
-      case "ANALYSIS":
-        return "bg-emerald-500 text-black font-bold";
-      case "GUIDE":
-        return "bg-[#f5c518] text-black font-bold";
       case "LEAK":
         return "bg-amber-500 text-black font-bold";
       case "THEORY":
@@ -126,16 +142,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         return <HelpCircle className="w-3.5 h-3.5 inline-block mr-1.5" />;
       case "NEWS":
         return <Sparkles className="w-3.5 h-3.5 inline-block mr-1.5" />;
-      case "ANALYSIS":
-        return <Search className="w-3.5 h-3.5 inline-block mr-1.5" />;
-      case "GUIDE":
-        return <BookOpen className="w-3.5 h-3.5 inline-block mr-1.5" />;
       default:
         return null;
     }
   };
 
+  /* Structured data: NewsArticle / Article + breadcrumb */
   const articleUrl = absoluteUrl(`/news/${article.id}`);
+  const published = toIsoDate(article.date);
   const wordCount = [
     article.content.intro,
     ...article.content.sections.flatMap((s) => s.paragraphs),
@@ -143,53 +157,47 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     .join(" ")
     .split(/\s+/).length;
 
-  const articleJsonLd = {
-    "@context": "https://schema.org",
-    "@type": article.category === "NEWS" ? "NewsArticle" : "Article",
-    "@id": `${articleUrl}#article`,
-    mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
-    url: articleUrl,
-    headline: article.title.slice(0, 110),
-    description: article.description,
-    image: [absoluteUrl(article.heroImage || article.image)],
-    datePublished: article.publishedAt,
-    dateModified: article.updatedAt,
-    author: { "@type": "Person", name: article.author },
-    publisher: {
-      "@type": "Organization",
-      "@id": `${SITE_URL}/#organization`,
-      name: "Avengers: Doomsday Fan Hub",
-      url: SITE_URL,
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": article.category === "NEWS" ? "NewsArticle" : "Article",
+      "@id": `${articleUrl}#article`,
+      mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
+      url: articleUrl,
+      headline: truncate(article.title, 110),
+      description: article.description,
+      image: [absoluteUrl(article.heroImage || article.image)],
+      ...(published && { datePublished: published, dateModified: published }),
+      author: { "@type": "Person", name: article.author },
+      publisher: {
+        "@type": "Organization",
+        name: "Avengers: Doomsday Fan Hub",
+        url: SITE_URL,
+      },
+      articleSection: CATEGORY_LABEL[article.category] ?? article.category,
+      wordCount,
+      inLanguage: "en-US",
+      isAccessibleForFree: true,
     },
-    articleSection: CATEGORY_LABEL[article.category] ?? article.category,
-    keywords: article.tags?.join(", "),
-    wordCount,
-    inLanguage: "en-US",
-    isAccessibleForFree: true,
-  };
-
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "News", item: `${SITE_URL}/news` },
-      { "@type": "ListItem", position: 3, name: article.title, item: articleUrl },
-    ],
-  };
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "News", item: `${SITE_URL}/news` },
+        { "@type": "ListItem", position: 3, name: article.title, item: articleUrl },
+      ],
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-black text-white pb-20">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([articleJsonLd, breadcrumbJsonLd]).replace(
-            /</g,
-            "\\u003c"
-          ),
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
-
       {/* Top Back Navigation Bar */}
       <div className="border-b border-white/10 bg-[#050608]/80 backdrop-blur-md sticky top-16 z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
@@ -263,7 +271,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
             <div className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-neutral-500" />
-              <time dateTime={article.publishedAt}>{article.date}</time>
+              <time dateTime={published}>{article.date}</time>
             </div>
           </div>
         </div>
@@ -333,23 +341,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           ))}
         </div>
 
-        {/* Topics */}
-        {article.tags && article.tags.length > 0 && (
-          <div className="mt-12 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-neutral-500">Topics</span>
-            {article.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-white/15 px-3 py-1 text-xs text-neutral-300"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
         {/* Back to News Action at Bottom */}
-        <div className="mt-12 pt-8 border-t border-white/10 flex items-center justify-between">
+        <div className="mt-16 pt-8 border-t border-white/10 flex items-center justify-between">
           <Link
             href="/news"
             className="inline-flex items-center text-sm font-mono tracking-wider text-white bg-white/5 border border-white/10 px-5 py-3 hover:bg-[#EF4444] hover:border-[#EF4444] hover:text-white transition-all uppercase"
@@ -359,48 +352,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </Link>
         </div>
       </article>
-
-      {/* Related articles: keeps readers on the site and adds internal links */}
-      {related.length > 0 && (
-        <section
-          aria-labelledby="related-heading"
-          className="mx-auto mt-16 max-w-5xl px-4 sm:px-6"
-        >
-          <h2
-            id="related-heading"
-            className="text-2xl font-bold tracking-tight text-white"
-          >
-            Keep reading
-          </h2>
-
-          <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {related.map((item) => (
-              <li key={item.id}>
-                <Link
-                  href={`/news/${item.id}`}
-                  className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EF4444]"
-                >
-                  <div className="relative aspect-video overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-white/10">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      sizes="(min-width:1024px) 300px, (min-width:640px) 45vw, 100vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                  </div>
-                  <p className="mt-3 text-xs text-neutral-500">
-                    {CATEGORY_LABEL[item.category] ?? item.category}
-                  </p>
-                  <h3 className="mt-1 text-base font-semibold leading-snug text-white transition-colors group-hover:text-neutral-300">
-                    {item.title}
-                  </h3>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </main>
   );
 }

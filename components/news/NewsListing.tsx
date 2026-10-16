@@ -1,341 +1,220 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, X } from "lucide-react";
-import {
-  getAllArticles,
-  type NewsArticle,
-  type NewsCategory,
-} from "@/lib/newsData";
+import { ChevronRight } from "lucide-react";
+import { sampleArticles } from "@/lib/newsData";
 
-type Filter = "ALL" | NewsCategory;
+type CategoryFilter = "Latest" | "Leaks" | "Theories";
 
-const PAGE_SIZE = 9;
-
-const CATEGORY_META: Record<
-  NewsCategory,
-  { label: string; badge: string; description: string }
-> = {
-  NEWS: {
-    label: "News",
-    badge: "bg-[#EF4444] text-white",
-    description: "Announcements and confirmed updates",
-  },
-  ANALYSIS: {
-    label: "Analysis",
-    badge: "bg-emerald-500 text-black",
-    description: "Context and explainers",
-  },
-  GUIDE: {
-    label: "Guides",
-    badge: "bg-[#f5c518] text-black",
-    description: "Practical how-tos",
-  },
-  THEORY: {
-    label: "Theories",
-    badge: "bg-indigo-600 text-white",
-    description: "Fan speculation, clearly marked",
-  },
-  LEAK: {
-    label: "Leaks",
-    badge: "bg-amber-500 text-black",
-    description: "Unconfirmed reports",
-  },
-};
-
-const CATEGORY_ORDER: NewsCategory[] = [
-  "NEWS",
-  "ANALYSIS",
-  "GUIDE",
-  "THEORY",
-  "LEAK",
+const CATEGORIES: { id: CategoryFilter; label: string }[] = [
+  { id: "Latest", label: "Latest" },
+  { id: "Leaks", label: "Leaks" },
+  { id: "Theories", label: "Theories" },
 ];
 
-function Badge({ category }: { category: NewsCategory }) {
-  const meta = CATEGORY_META[category];
-  return (
-    <span
-      className={`inline-block rounded-sm px-2.5 py-1 text-xs font-semibold ${meta.badge}`}
-    >
-      {meta.label === "Guides"
-        ? "Guide"
-        : meta.label === "Theories"
-          ? "Theory"
-          : meta.label === "Leaks"
-            ? "Leak"
-            : meta.label}
-    </span>
-  );
-}
+const MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
 
-function Meta({ article }: { article: NewsArticle }) {
-  return (
-    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-400">
-      <time dateTime={article.publishedAt}>{article.date}</time>
-      <span>{article.readingTime.replace("Minutes Read", "min read")}</span>
-    </p>
-  );
+// "October 2026" -> "2026-10-01" so the visible date can also be machine-readable.
+function toIsoDate(label: string): string | undefined {
+  const m = label.match(/([A-Za-z]+)\.?\s+(?:(\d{1,2})(?:st|nd|rd|th)?,?\s+)?(\d{4})/);
+  if (!m) return undefined;
+  const month = MONTHS.indexOf(m[1].toLowerCase());
+  if (month === -1) return undefined;
+  const day = m[2] ? Number(m[2]) : 1;
+  return new Date(Date.UTC(Number(m[3]), month, day)).toISOString().slice(0, 10);
 }
 
 export default function NewsListing() {
-  const articles = useMemo(() => getAllArticles(), []);
-  const [filter, setFilter] = useState<Filter>("ALL");
-  const [query, setQuery] = useState("");
-  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [selectedCategory, setSelectedCategory] =
+    useState<CategoryFilter>("Latest");
 
-  const counts = useMemo(() => {
-    const map = new Map<NewsCategory, number>();
-    articles.forEach((a) => map.set(a.category, (map.get(a.category) ?? 0) + 1));
-    return map;
-  }, [articles]);
+  // Filter articles based on selected category control
+  // "Latest" orders newest first; "Leaks" maps to "LEAK"; "Theories" maps to "THEORY"
+  const filteredArticles = useMemo(() => {
+    if (selectedCategory === "Leaks") {
+      return sampleArticles.filter((article) => article.category === "LEAK");
+    }
+    if (selectedCategory === "Theories") {
+      return sampleArticles.filter((article) => article.category === "THEORY");
+    }
+    // "Latest": displays all articles in chronological order (newest first)
+    return sampleArticles;
+  }, [selectedCategory]);
 
-  const availableCategories = CATEGORY_ORDER.filter((c) => counts.has(c));
-
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return articles.filter((a) => {
-      if (filter !== "ALL" && a.category !== filter) return false;
-      if (!q) return true;
-      const haystack = [a.title, a.description, ...(a.tags ?? [])]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [articles, filter, query]);
-
-  const searching = query.trim().length > 0;
-  const featured = !searching ? results[0] : undefined;
-  const rest = featured ? results.slice(1) : results;
-  const shown = rest.slice(0, visible);
-  const hasMore = rest.length > visible;
-
-  const selectFilter = (next: Filter) => {
-    setFilter(next);
-    setVisible(PAGE_SIZE);
-  };
-
-  const clearAll = () => {
-    setFilter("ALL");
-    setQuery("");
-    setVisible(PAGE_SIZE);
-  };
+  const leadArticle = filteredArticles[0];
+  const remainingArticles = filteredArticles.slice(1);
 
   return (
     <div className="w-full text-white">
-      {/* Page header */}
-      <header className="flex flex-col gap-6 border-b border-white/10 pb-8 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-2xl">
-          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            News and analysis
-          </h1>
-          <p className="mt-3 text-base leading-7 text-neutral-300 sm:text-lg">
-            Announcements, explainers and clearly labeled theories about
-            Avengers: Doomsday, written by independent Marvel fans.
-          </p>
-        </div>
-
-        <div className="relative w-full lg:w-80">
-          <label htmlFor="news-search" className="sr-only">
-            Search articles
-          </label>
-          <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+      {/* Section Heading: "Top news" with vertical yellow bar and right-facing chevron */}
+      <div className="flex items-center gap-2.5 sm:gap-3 mb-6 sm:mb-8">
+        <span
+          className="w-1 sm:w-1.5 h-6 sm:h-7 bg-[#f5c518] rounded-xs shrink-0"
+          aria-hidden="true"
+        />
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
+          Top news
+          <span className="sr-only"> about Avengers: Doomsday</span>
+          <ChevronRight
+            className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.5]"
             aria-hidden="true"
           />
-          <input
-            id="news-search"
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setVisible(PAGE_SIZE);
-            }}
-            placeholder="Search Doom, cast, theories"
-            className="w-full rounded-full border border-white/15 bg-white/[0.04] py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-neutral-500 focus:border-[#EF4444] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#EF4444]/40"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              aria-label="Clear search"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-neutral-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EF4444]"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </header>
-
-      {/* Category filters */}
-      <div
-        className="-mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 [scrollbar-width:none]"
-        role="group"
-        aria-label="Filter articles by category"
-      >
-        {([
-          { id: "ALL" as Filter, label: "All", count: articles.length },
-          ...availableCategories.map((c) => ({
-            id: c as Filter,
-            label: CATEGORY_META[c].label,
-            count: counts.get(c) ?? 0,
-          })),
-        ]).map((item) => {
-          const selected = filter === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => selectFilter(item.id)}
-              aria-pressed={selected}
-              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EF4444] focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-                selected
-                  ? "border-white bg-white text-black"
-                  : "border-white/15 text-neutral-200 hover:border-white/40 hover:bg-white/5"
-              }`}
-            >
-              {item.label}
-              <span
-                className={`ml-2 text-xs ${selected ? "text-neutral-600" : "text-neutral-500"}`}
-              >
-                {item.count}
-              </span>
-            </button>
-          );
-        })}
+        </h1>
       </div>
 
-      <p className="sr-only" role="status" aria-live="polite">
-        {results.length} {results.length === 1 ? "article" : "articles"} shown
-      </p>
+      {/* Main Two-Column Layout (Desktop: ~65% articles, ~35% MORE NEWS. Mobile: stacked) */}
+      <div className="flex flex-col lg:flex-row items-start justify-between gap-8 sm:gap-10 lg:gap-12">
+        {/* Right Section: "MORE NEWS" (on desktop sits on the right; on smaller screens stacks below heading, above articles) */}
+        <aside
+          className="w-full lg:w-[32%] xl:w-[30%] order-1 lg:order-2 shrink-0"
+          aria-label="More news categories"
+        >
+          <div className="border border-neutral-800 rounded-lg p-5 sm:p-6 bg-transparent">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-300 mb-4 font-sans">
+              MORE NEWS
+            </h2>
 
-      {results.length === 0 ? (
-        <div className="mt-12 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-16 text-center">
-          <h2 className="text-xl font-semibold text-white">
-            No articles match your search
-          </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-neutral-400">
-            Try a different keyword, or clear the filters to see every article.
-          </p>
-          <button
-            type="button"
-            onClick={clearAll}
-            className="mt-6 rounded-full bg-[#EF4444] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          >
-            Clear filters
-          </button>
-        </div>
-      ) : (
-        <>
-          {/* Featured story */}
-          {featured && (
-            <article className="mt-10">
-              <Link
-                href={`/news/${featured.id}`}
-                className="group grid gap-6 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EF4444] lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-10"
-              >
-                <div className="relative aspect-video overflow-hidden rounded-2xl bg-neutral-900 ring-1 ring-white/10">
-                  <Image
-                    src={featured.image}
-                    alt={featured.title}
-                    fill
-                    priority
-                    sizes="(min-width:1024px) 60vw, 100vw"
-                    className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
-                  />
-                </div>
-
-                <div className="flex flex-col justify-center">
-                  <div>
-                    <Badge category={featured.category} />
-                  </div>
-                  <h2 className="mt-4 text-2xl font-bold leading-tight tracking-tight text-white transition-colors group-hover:text-neutral-300 sm:text-3xl lg:text-4xl">
-                    {featured.title}
-                  </h2>
-                  <p className="mt-4 line-clamp-4 text-base leading-7 text-neutral-300">
-                    {featured.description}
-                  </p>
-                  <div className="mt-5 space-y-1">
-                    <p className="text-sm text-neutral-200">
-                      By {featured.author}
-                    </p>
-                    <Meta article={featured} />
-                  </div>
-                </div>
-              </Link>
-            </article>
-          )}
-
-          {/* Article grid */}
-          {shown.length > 0 && (
-            <section
-              aria-label="Articles"
-              className={featured ? "mt-14 border-t border-white/10 pt-10" : "mt-10"}
+            {/* Pill-shaped outlined controls */}
+            <div
+              className="flex flex-wrap gap-2 sm:gap-2.5"
+              role="group"
+              aria-label="Filter news by category"
             >
-              {featured && (
-                <h2 className="mb-6 text-xl font-bold tracking-tight text-white">
-                  More stories
-                </h2>
+              {CATEGORIES.map((category) => {
+                const isSelected = selectedCategory === category.id;
+                return (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(category.id)}
+                    aria-pressed={isSelected}
+                    className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors cursor-pointer border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5c518] focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+                      isSelected
+                        ? "border-white bg-white text-black font-semibold shadow-sm"
+                        : "border-neutral-700 bg-transparent text-white hover:border-neutral-400 hover:bg-white/5"
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </aside>
+
+        {/* Left Section: Articles (roughly 65% width on desktop) */}
+        <section
+          className="w-full lg:w-[65%] xl:w-[68%] order-2 lg:order-1 min-w-0"
+          aria-label="Articles list"
+        >
+          {filteredArticles.length === 0 ? (
+            <div className="py-16 text-center text-neutral-400 text-sm">
+              <p>No articles found in this category.</p>
+            </div>
+          ) : (
+            <div>
+              {/* Lead Article (Full width across the left section) */}
+              {leadArticle && (
+                <article>
+                  <Link
+                    href={`/news/${leadArticle.id}`}
+                    className="group flex flex-row items-start gap-4 sm:gap-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5c518] rounded-sm"
+                  >
+                    {/* Exact Ratio Thumbnail: 16:9 landscape aspect-video */}
+                    <div className="relative w-[170px] sm:w-[210px] lg:w-[230px] aspect-video shrink-0 overflow-hidden rounded-[4px] bg-neutral-900">
+                      <Image
+                        src={leadArticle.image}
+                        alt={leadArticle.title}
+                        fill
+                        sizes="(max-width: 640px) 170px, 230px"
+                        priority
+                        className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+
+                    {/* Lead Article Details: Bold headline, 3-line excerpt, metadata */}
+                    <div className="flex flex-col justify-between min-w-0 flex-1 self-stretch py-0.5">
+                      <div>
+                        <h2 className="text-base sm:text-lg lg:text-xl font-bold text-white leading-snug group-hover:text-neutral-300 transition-colors font-sans line-clamp-2 sm:line-clamp-none">
+                          {leadArticle.title}
+                        </h2>
+                        <p className="mt-2 text-xs sm:text-sm text-neutral-300 line-clamp-3 leading-relaxed font-sans">
+                          {leadArticle.description}
+                        </p>
+                      </div>
+
+                      {/* Date/Source Metadata */}
+                      <div className="mt-2.5 flex items-center gap-1.5 text-xs text-neutral-400 font-sans">
+                        <time dateTime={toIsoDate(leadArticle.date)}>
+                          {leadArticle.date}
+                        </time>
+                        {leadArticle.author && (
+                          <>
+                            <span aria-hidden="true">•</span>
+                            <span>{leadArticle.author}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </article>
               )}
-              <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-                {shown.map((article) => (
-                  <li key={article.id}>
-                    <article className="h-full">
+
+              {/* Smaller Articles Grid (2 columns on sm/desktop, 1 column on narrow screens) */}
+              {remainingArticles.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-7 mt-8 sm:mt-10">
+                  {remainingArticles.map((article) => (
+                    <article key={article.id}>
                       <Link
                         href={`/news/${article.id}`}
-                        className="group flex h-full flex-col rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EF4444]"
+                        className="group flex flex-row items-start gap-3 sm:gap-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5c518] rounded-sm"
                       >
-                        <div className="relative aspect-video overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-white/10">
+                        {/* Exact Ratio Thumbnail: 16:9 landscape aspect-video */}
+                        <div className="relative w-[110px] sm:w-[125px] aspect-video shrink-0 overflow-hidden rounded-[4px] bg-neutral-900">
                           <Image
                             src={article.image}
                             alt={article.title}
                             fill
-                            sizes="(min-width:1024px) 30vw, (min-width:640px) 45vw, 100vw"
-                            className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
+                            sizes="(max-width: 640px) 110px, 125px"
+                            className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
                           />
                         </div>
-                        <div className="mt-4 flex flex-1 flex-col">
+
+                        {/* Article Details: Bold headline, date/source metadata */}
+                        <div className="flex flex-col justify-between min-w-0 flex-1 self-stretch py-0.5">
                           <div>
-                            <Badge category={article.category} />
+                            <h3 className="text-xs sm:text-sm font-bold text-white leading-snug line-clamp-3 group-hover:text-neutral-300 transition-colors font-sans">
+                              {article.title}
+                            </h3>
                           </div>
-                          <h3 className="mt-3 text-lg font-bold leading-snug text-white transition-colors group-hover:text-neutral-300">
-                            {article.title}
-                          </h3>
-                          <p className="mt-2 line-clamp-3 text-sm leading-6 text-neutral-400">
-                            {article.description}
-                          </p>
-                          <div className="mt-auto pt-4">
-                            <Meta article={article} />
+
+                          {/* Date/Source Metadata */}
+                          <div className="mt-2 flex items-center gap-1.5 text-[11px] sm:text-xs text-neutral-400 font-sans">
+                            <time dateTime={toIsoDate(article.date)}>
+                              {article.date}
+                            </time>
+                            {article.author && (
+                              <>
+                                <span aria-hidden="true">•</span>
+                                <span>{article.author}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </Link>
                     </article>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {hasMore && (
-            <div className="mt-12 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EF4444]"
-              >
-                Show more articles
-              </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
-        </>
-      )}
-
-      <p className="mt-16 max-w-3xl text-xs leading-5 text-neutral-500">
-        Doomsday is an independent fan site and is not affiliated with Marvel
-        Studios or Disney. Articles labeled Theory are speculation, and
-        anything unconfirmed is marked as a report.
-      </p>
+        </section>
+      </div>
     </div>
   );
 }

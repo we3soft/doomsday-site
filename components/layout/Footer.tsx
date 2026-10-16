@@ -8,9 +8,11 @@ const navigation = [
   { name: "News", href: "/news" },
 ];
 
+// Contact now points to its own /contact page. Two links to the same URL
+// (/privacy) look like duplicate or placeholder links to Google and AdSense.
 const legal = [
   { name: "About", href: "/about" },
-  { name: "Contact", href: "/privacy" },
+  { name: "Contact", href: "/contact" },
   { name: "Privacy", href: "/privacy" },
   { name: "Terms", href: "/privacy" },
 ];

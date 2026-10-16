@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { IMG, MOVIE_ID, tmdb } from "@/lib/tmdb";
@@ -10,9 +11,39 @@ type CastMember = {
   order: number;
 };
 
-export const metadata = {
-  title: "Cast | Avengers: Doomsday",
-  description: "Meet the cast and characters of Avengers: Doomsday.",
+const SITE_URL = "https://avengersdoomsday.live";
+const PAGE_URL = `${SITE_URL}/cast`;
+const TITLE = "Avengers: Doomsday Cast – Actors & Characters (2026)";
+const DESCRIPTION =
+  "Full cast list for Avengers: Doomsday (2026). Browse every listed actor and character, including Robert Downey Jr. as Doctor Doom, with photos and biographies.";
+const OG_IMAGE = `${SITE_URL}/og-image.jpg`;
+
+export const metadata: Metadata = {
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  keywords: [
+    "Avengers Doomsday cast",
+    "Avengers Doomsday actors",
+    "Avengers Doomsday characters",
+    "Robert Downey Jr Doctor Doom cast",
+    "Avengers Doomsday full cast list",
+  ],
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    type: "website",
+    url: PAGE_URL,
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: "Avengers: Doomsday",
+    locale: "en_US",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: TITLE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
 export default async function CastPage() {
@@ -25,8 +56,49 @@ export default async function CastPage() {
     .sort((a, b) => a.order - b.order)
     .slice(0, 30);
 
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "@id": `${PAGE_URL}#webpage`,
+      url: PAGE_URL,
+      name: "Avengers: Doomsday Cast",
+      description: DESCRIPTION,
+      inLanguage: "en-US",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "Cast", item: PAGE_URL },
+      ],
+    },
+    ...(cast.length > 0
+      ? [
+          {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "Avengers: Doomsday cast",
+            itemListElement: cast.map((person, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              url: `${SITE_URL}/cast/${person.id}`,
+              name: `${person.name} as ${person.character}`,
+            })),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <main className="min-h-screen bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* ───────── Hero ───────── */}
       <section className="relative overflow-hidden border-b border-white/[0.06]">
         <div
