@@ -27,6 +27,38 @@ export interface NewsArticle {
 
 export const sampleArticles: NewsArticle[] = [
   {
+    id: "cavill-beyonder-figure",
+    title: "Henry Cavill really just posted a Beyonder LEGO figure and expected Marvel fans to act normal.",
+    description:
+      "Henry Cavill’s recent Instagram post featuring a Beyonder LEGO figure has made some rumors that he could be joining the MCU in Avengers: Doomsday.",
+    category: "THEORY",
+    date: "October 2026",
+    author: "S Min",
+    readingTime: "2–3 Minutes Read",
+    image: "/cavill.png",
+    heroImage: "/cavill.png",
+    content: {
+      intro:
+        "While previous rumors showcased Henry Cavill for a Wolverine variant, the Marvel rumor has taken that toward The Beyonder. Fans are already flooding the timeline with art imagining him as the cosmic architect of Secret Wars. There’s zero official confirmation yet, but watching the hype shift from a grounded mutant to a reality warping god proves just how desperate the fandom is to see Cavill land a heavyweight MCU role.",
+      sections: [
+        {
+          paragraphs: [
+            "In 1984, Marvel introduced the ultimate cosmic heavyweight as The Beyonder. This wasn't just another villain, he was an omnipotent being fascinated by humanity, dragging Marvel’s greatest heroes and villains to a planet called Battleworld just to test their morality. Wielding unimaginable, reality-shaping power. He could grant any wish. Doctor Doom had to pull off the ultimate heist and steal his energy and proving the Beyonder's raw magic was too massive for anyone to truly control."
+          ],
+          image: {
+            url: "/beyonder.avif",
+            
+          },
+        },
+        {
+          paragraphs: [
+            "In 2015 Secret Wars dialed the stakes up to a cataclysmic level. The Beyonder was reimagined not as a single curious god, but as an entire race of indifferent, apocalyptic architects. These Beyonders didn't care about morality. They just wanted to wipe the slate clean and triggering the devastating Incursions that forced parallel universes to violently collide. It took the total collapse of the multiverse and Doctor Doom stealing their god-tier power once again to forge a brand new Battleworld from the ashes."
+          ],
+        }
+      ],
+    },
+  },
+  {
     id: "thor-odinfore",
     title: "With the multiverse collapsing in Avengers: Doomsday, the Odinforce might be the only thing keeping Thor in the heavyweight bracket.",
     description:
