@@ -27,6 +27,38 @@ export interface NewsArticle {
 
 export const sampleArticles: NewsArticle[] = [
   {
+    id: "Sandra-cameo",
+    title: "Sandra Hüller reportedly scoring a cameo in Avengers: Doomsday.",
+    description:
+      "Academy Award-nominated actress Sandra Hüller has recently added as a cameo role in Avengers: Doomsday.",
+    category: "NEWS",
+    date: "October 2026",
+    author: "S Min",
+    readingTime: "2–3 Minutes Read",
+    image: "/sandra.png",
+    heroImage: "/sandra.png",
+    content: {
+      intro:
+        "Avengers: Doomsday has recently added Academy Award-nominated actress Sandra Hüller in the massive cast as a cameo role. Known for her acclaimed performance in Anatomy of a Fall and her recent role in Project Hail Mary. Hüller's casting has sparked significant speculation. Because she is only slated for a brief cameo. Rumors suggest that she will be playing a character tied directly to  Doctor Doom. Popular fan theories and industry reports indicate she could be playing either Doom's long-deceased mother, Cynthia von Doom or one of the mysterious Latverian Witches who serve him.   ",
+      sections: [
+        {
+          paragraphs: [
+            "Marvel has actually been hinting at this magical connection for a while. At Comic-Con, the studio even showed off special Latverian robes, strongly suggesting these witches will appear in the movie. Whether Hüller is playing a witch or a member of Doom's family, bringing in an Oscar-nominated star from hit movies like Anatomy of a Fall adds some serious acting talent to this already massive superhero cast."
+          ],
+          image: {
+            url: "/sandra.png",
+            
+          },
+        },
+        {
+          paragraphs: [
+            "Director Anthony Russo recently teased that Marvel is still hiding a few casting secrets, and it seems Sandra Hüller is one of those surprises. Joining this massive superhero blockbuster could be an unusual move for an actress famous for serious European dramas playing a vital role like Doom’s mother could give her brief appearance some real depth. Even still with so many heroes and villains packed into Avengers: Doomsday, even a star of Hüller's caliber might only end up getting a scene or two."
+          ],
+        }
+      ],
+    },
+  },
+  {
     id: "cavill-beyonder-figure",
     title: "Henry Cavill really just posted a Beyonder LEGO figure and expected Marvel fans to act normal.",
     description:
