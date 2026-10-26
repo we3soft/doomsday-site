@@ -27,6 +27,39 @@ export interface NewsArticle {
 
 export const sampleArticles: NewsArticle[] = [
   {
+    id: "loki-disguise-steve",
+    title: " Loki Is Disguised as Steve Rogers in Avengers: Doomsday.",
+    description:
+      "New Doomsday theories claim that Loki has returned to impersonate Steve Rogers to protect him from Doctor Doom.",
+    category: "NEWS",
+    date: "October 2026",
+    author: "S Min",
+    readingTime: "2–3 Minutes Read",
+    image: "/loki1.png",
+    heroImage: "/loki1.png",
+    content: {
+      intro:
+        "Based on recent teaser trailers and promo clips, Marvel fans have crafted a wild theory that the Steve Rogers we see in Avengers: Doomsday actually Steve, or is it Loki in disguise? Currently we are dealing with one of Marvel's biggest events to date. Sure, Brand New Day included everything shown in its promos, but that doesn't mean we can take the Doomsday teasers at 100% face value. Since these are fan theories, let's set that caveat aside and explore this from a What If angle.",
+      sections: [
+        {
+          paragraphs: [
+            "Following the Endgame encore, we saw that Loki step in to save Steve and Peggy from Doom. Because of this, many fans theorize that the Steve Rogers seen in Avengers: Doomsday is actually Loki in disguise. Loki knows Doom is hunting Steve, so taking Steve's place might be the best move he can make right now.",
+            "In reality, Thor isn't easily fooled by his brother's illusions. However, Thor doesn't even know if Loki is alive right now, and Loki could easily take advantage of that blind spot. Seeing Steve wield Mjolnir would instantly convince Thor that he is looking at the real Captain America."
+          ],
+          image: {
+            url: "/loki2.png",
+            
+          },
+        },
+        {
+          paragraphs: [
+            "Whether this turns out to be the best Russo Brothers misdirection or simply the fandom connecting dots that aren’t there, the idea of the God of Stories wielding Mjolnir under the disguise of Captain America fits the multiverse's chaotic stakes like a glove. If Marvel has taught us anything, it's that nothing is ever truly as it seems on the surface, and that very unpredictability is what makes the road to Avengers: Doomsday so thrilling to dissect."
+          ],
+        }
+      ],
+    },
+  },
+  {
     id: "Sandra-cameo",
     title: "Sandra Hüller reportedly scoring a cameo in Avengers: Doomsday.",
     description:
